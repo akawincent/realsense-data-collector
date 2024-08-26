@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import pyrealsense2 as rs
 
+from utils import viewer
 from auto_exposure import AE
 
 if __name__ == "__main__":
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     
     # setting for streams
     framerate = 30
-    image_resolution = [640, 480]
+    image_resolution = [1280, 720]
     config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
     # calculate exposure time range
     indoor_flicker_freq = 50
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     
     # initialize Auto Exposure algorithm
     intial_exposure_time = (min_exposure_time + max_exposure_time) / 2
-    target_brightness = 80
+    target_brightness = 90
     auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, 
                        image_resolution, target_brightness)
 
@@ -87,21 +88,19 @@ if __name__ == "__main__":
             if not color_frame:
                 continue
 
-            actual_exp_time = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_exposure)
-            # # actual_framerate = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_fps)
-            # print("[INFO] Actual exposure time:", actual_exp_time, "msec")
-            # print(actual_framerate)
-
             # Convert images to numpy arrays
             color_image = np.asanyarray(color_frame.get_data())
 
+            # get actual exposure time
+            actual_exp_time = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_exposure)
+            # print("[INFO] Actual exposure time:", (actual_exp_time / 10), "msec")
+
             # calculate exposure time for next frame
             next_exposure_time = auto_exposure.adjust_exposure(color_image)
-            print("[INFO] exposure time for next frame", next_exposure_time, "msec")
+            # print("[INFO] exposure time for next frame", next_exposure_time, "msec")
 
             # Show images
-            cv2.namedWindow('RealSense D455 online stream', cv2.WINDOW_AUTOSIZE)
-            cv2.imshow('RealSense D455 online stream', color_image)
+            viewer.visualizer(color_image, actual_exp_time, auto_exposure.w_avg_bright)
             
             key = cv2.waitKey(1)
             if key & 0xFF == ord('q') or key == 27:

@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import pyrealsense2 as rs
 
 class AE:
     def __init__(self, initial_exposure_time, max_exposure_time, min_exposure_time, 
@@ -11,6 +10,7 @@ class AE:
         self.min_exp_t = min_exposure_time
         self.c_f = contrast_factor
         self.gsw = self.generate_gaussian_weight(image_shape)
+        self.w_avg_bright = None
 
     def generate_gaussian_weight(self, shape, sigma = 1.0):
         cols, rows = shape
@@ -37,20 +37,21 @@ class AE:
 
     def adjust_exposure(self, color_image):
         # calculate weighted average brightness
-        w_avg_bright = self.calculate_weighted_average_brightness(color_image)
+        self.w_avg_bright = self.calculate_weighted_average_brightness(color_image)
         # w_avg_bright = np.mean(cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY))
-        print("[INFO] weighted average brightness: ", w_avg_bright)
+        # print("[INFO] weighted average brightness: ", self.w_avg_bright)
 
         # calculate histogram contrast
         histogram_contrast = self.calculate_histogram_contrast(color_image)
         # print("[INFO] histogram_contrast: ", histogram_contrast)
 
         # calculate new exposure time
-        linear_term = 0.75 * (self.target_bright - w_avg_bright) / self.target_bright
-        nonlinear_term = 10 * (1 / 2.71 - np.exp( - (self.target_bright / w_avg_bright)))
-        print("[INFO] nonlinear term value: ", nonlinear_term)
+        linear_term = 0.75 * (self.target_bright - self.w_avg_bright) / self.target_bright
+        # print("[INFO] linear term value: ", linear_term)
+        nonlinear_term = 10 * (1 / 2.71 - np.exp( - (self.target_bright / self.w_avg_bright)))
+        # print("[INFO] nonlinear term value: ", nonlinear_term)
         # exposure_time = self.base_exp_t * (self.target_bright / w_avg_bright) * (1 + self.c_f * histogram_contrast)\
         # exposure_time = self.base_exp_t * (1 + 0.75 * (self.target_bright - w_avg_bright) / self.target_bright) 
-        exposure_time = self.base_exp_t * (1 + 0.8 * linear_term ) + 1.0 * nonlinear_term
+        exposure_time = self.base_exp_t * (1 + 0.8 * linear_term) + 1.0 * nonlinear_term
         # constrains exposure time
         return np.clip(exposure_time, self.min_exp_t, self.max_exp_t)  
