@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import pyrealsense2 as rs
 
+from auto_exposure import AE
+
 if __name__ == "__main__":
     pipeline = rs.pipeline()
     config = rs.config()
@@ -51,8 +53,11 @@ if __name__ == "__main__":
     color_sensor.set_option(rs.option.enable_auto_exposure, False)
     color_sensor.set_option(rs.option.power_line_frequency, 1)
     
-    # calculate exposure time range
+    # setting for streams
     framerate = 30
+    image_resolution = [640, 480]
+    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
+    # calculate exposure time range
     indoor_flicker_freq = 50
     exposure_range = color_sensor.get_option_range(rs.option.exposure)
     max_exposure_time = min(1 / framerate * 1e3, exposure_range.max * 0.1)
@@ -60,16 +65,20 @@ if __name__ == "__main__":
     print(f"exposure time min: {round(min_exposure_time, 1)} msec")
     print(f"exposure time max: {round(max_exposure_time, 1)} msec")
     
-    # setting for streams
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, framerate)
-    
+    # initialize Auto Exposure algorithm
+    intial_exposure_time = (min_exposure_time + max_exposure_time) / 2
+    target_brightness = 80
+    auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, 
+                       image_resolution, target_brightness)
+
     # start streaming
     pipeline.start(config)
 
     try:
+        next_exposure_time = intial_exposure_time 
         while True:
             # set exposure time 
-            manual_exposure_time = 25
+            manual_exposure_time = next_exposure_time
             color_sensor.set_option(rs.option.exposure, manual_exposure_time * 10)
             
             # Wait for a frames metadata
@@ -80,12 +89,15 @@ if __name__ == "__main__":
 
             actual_exp_time = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_exposure)
             # # actual_framerate = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_fps)
-            # print(actual_exp_time)
+            # print("[INFO] Actual exposure time:", actual_exp_time, "msec")
             # print(actual_framerate)
 
             # Convert images to numpy arrays
             color_image = np.asanyarray(color_frame.get_data())
-            color_colormap_dim = color_image.shape
+
+            # calculate exposure time for next frame
+            next_exposure_time = auto_exposure.adjust_exposure(color_image)
+            print("[INFO] exposure time for next frame", next_exposure_time, "msec")
 
             # Show images
             cv2.namedWindow('RealSense D455 online stream', cv2.WINDOW_AUTOSIZE)
