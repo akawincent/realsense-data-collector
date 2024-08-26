@@ -46,9 +46,12 @@ if __name__ == "__main__":
         print("[ERROR] Can't find motion sensor!")
         exit(0)
     
-    # set exposure option
+    # set sensor option
     color_sensor = pipeline_profile.get_device().query_sensors()[rgb_sensor_index]
     color_sensor.set_option(rs.option.enable_auto_exposure, False)
+    color_sensor.set_option(rs.option.power_line_frequency, 1)
+    
+    # calculate exposure time range
     framerate = 30
     indoor_flicker_freq = 50
     exposure_range = color_sensor.get_option_range(rs.option.exposure)
@@ -65,11 +68,20 @@ if __name__ == "__main__":
 
     try:
         while True:
+            # set exposure time 
+            manual_exposure_time = 25
+            color_sensor.set_option(rs.option.exposure, manual_exposure_time * 10)
+            
             # Wait for a frames metadata
             frames = pipeline.wait_for_frames()
             color_frame = frames.get_color_frame()
             if not color_frame:
                 continue
+
+            actual_exp_time = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_exposure)
+            # # actual_framerate = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_fps)
+            # print(actual_exp_time)
+            # print(actual_framerate)
 
             # Convert images to numpy arrays
             color_image = np.asanyarray(color_frame.get_data())
