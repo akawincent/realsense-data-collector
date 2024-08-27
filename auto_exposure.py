@@ -6,8 +6,8 @@ class AE:
                  image_shape, target_brightness = 50, contrast_factor = 1.0) -> None:
         self.target_bright = target_brightness
         self.base_exp_t = initial_exposure_time
-        self.max_exp_t = max_exposure_time
-        self.min_exp_t = min_exposure_time
+        self.max_exp_t = max_exposure_time 
+        self.min_exp_t = min_exposure_time 
         self.c_f = contrast_factor
         self.gsw = self.generate_gaussian_weight(image_shape)
         self.w_avg_bright = None
@@ -32,7 +32,7 @@ class AE:
         cdf = hist.cumsum()  
         cdf = np.ma.masked_equal(cdf, 0)  
         cdf = (cdf - cdf.min()) / (cdf.max() - cdf.min())  
-        contrast = -np.sum(cdf * np.log(cdf + 1e-3)) 
+        contrast = -np.sum(cdf * np.log(cdf + 1e-2, where = (cdf + 1e-2) > 0)) 
         return contrast
 
     def adjust_exposure(self, color_image):
