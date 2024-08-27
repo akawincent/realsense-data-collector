@@ -5,6 +5,7 @@ import pyrealsense2 as rs
 from utils import viewer
 from utils import logger
 from auto_exposure import AE
+from colorama import Fore, Style, init
 
 if __name__ == "__main__":
     pipeline = rs.pipeline()
@@ -72,15 +73,32 @@ if __name__ == "__main__":
     print(f"exposure time min: {round(min_exposure_time, 1)} msec")
     print(f"exposure time max: {round(max_exposure_time, 1)} msec")
     
-    # initialize Auto Exposure algorithm
-    target_brightness = 120
-    intial_exposure_time = (min_exposure_time + max_exposure_time) / 2
-    auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, 
-                       image_resolution, target_brightness)
-
     # start pipeline
     pipeline.start(config)
 
+    # initialize Auto Exposure algorithm
+    try:
+        while True:
+            user_input = input(Fore.GREEN + "Are you ready to determine the initial target brightness for AE now?").lower()
+            if user_input == 'y':
+                break
+            elif user_input == 'n':
+                pass
+            else:
+                print(Fore.RED + "[ERROR] Invalid input. Please enter 'y' or 'n'!")
+    finally:
+        intial_exposure_time = (min_exposure_time + max_exposure_time) / 2
+        color_sensor.set_option(rs.option.exposure, intial_exposure_time * 10)
+        frames = pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+        color_image = np.asanyarray(color_frame.get_data())
+        gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, gray_image)
+        print(Fore.WHITE + "[INFO] Successfully intialize auto-exposure algorithm.")
+        print(intial_exposure_time)
+        print(auto_exposure.target_bright)
+
+    # loop collect data
     try:
         next_exposure_time = intial_exposure_time 
         while True:

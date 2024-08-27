@@ -3,17 +3,20 @@ import numpy as np
 
 class AE:
     def __init__(self, initial_exposure_time, max_exposure_time, min_exposure_time, 
-                 image_shape, target_brightness = 50, contrast_factor = 1.0) -> None:
-        self.target_bright = target_brightness
+                 image: np.ndarray, contrast_factor = 1.0) -> None:
         self.base_exp_t = initial_exposure_time
         self.max_exp_t = max_exposure_time 
         self.min_exp_t = min_exposure_time 
         self.c_f = contrast_factor
-        self.gsw = self.generate_gaussian_weight(image_shape)
+        self.gsw = self.generate_gaussian_weight(image.shape)
+        self.target_bright = self.calculate_target_brightness(image)
         self.w_avg_bright = None
 
+    def calculate_target_brightness(self, image):
+        return np.mean(image)
+        
     def generate_gaussian_weight(self, shape, sigma = 1.0):
-        cols, rows = shape
+        rows, cols = shape
         x = np.linspace(-1, 1, cols)
         y = np.linspace(-1, 1, rows)
         x, y = np.meshgrid(x, y)
