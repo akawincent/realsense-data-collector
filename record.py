@@ -54,6 +54,7 @@ if __name__ == "__main__":
     # set sensor option
     color_sensor = pipeline_profile.get_device().query_sensors()[rgb_sensor_index]
     color_sensor.set_option(rs.option.enable_auto_exposure, False)
+    color_sensor.set_option(rs.option.enable_auto_white_balance, False)
     color_sensor.set_option(rs.option.power_line_frequency, 1)
     color_sensor.set_option(rs.option.global_time_enabled, 1)
     
@@ -94,9 +95,9 @@ if __name__ == "__main__":
         color_image = np.asanyarray(color_frame.get_data())
         gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, gray_image)
-        print(Fore.WHITE + "[INFO] Successfully intialize auto-exposure algorithm.")
-        print(intial_exposure_time)
-        print(auto_exposure.target_bright)
+        print(Fore.WHITE + "[INFO] Initial exposure time: ", intial_exposure_time)
+        print("[INFO] Initialized target brightness: ",auto_exposure.target_bright)
+        print("[INFO] Successfully intialize auto-exposure algorithm.")
 
     # loop collect data
     try:
