@@ -67,10 +67,11 @@ if __name__ == "__main__":
     logger.save_sensor_intrinsics(pipeline_profile, rs.stream.color)
     
     # calculate exposure time range
-    indoor_flicker_freq = 50
+    # indoor_flicker_freq = 50
     exposure_range = color_sensor.get_option_range(rs.option.exposure)
-    max_exposure_time = min(1 / framerate * 1e3, exposure_range.max * 0.1)  -2
-    min_exposure_time = max((1 / (indoor_flicker_freq * 2)) * 1e3, exposure_range.min * 0.1) - 5
+    max_exposure_time = min(1 / framerate * 1e3, exposure_range.max * 0.1) - 2
+    min_exposure_time = exposure_range.min * 0.1
+    # min_exposure_time = max((1 / (indoor_flicker_freq * 2)) * 1e3, exposure_range.min * 0.1) - 5
     print(f"exposure time min: {round(min_exposure_time, 1)} msec")
     print(f"exposure time max: {round(max_exposure_time, 1)} msec")
     
@@ -93,19 +94,18 @@ if __name__ == "__main__":
         frames = pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
         color_image = np.asanyarray(color_frame.get_data())
-        gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-        auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, gray_image)
+        auto_exposure = AE(intial_exposure_time, max_exposure_time, min_exposure_time, color_image)
         print(Fore.WHITE + "[INFO] Initial exposure time: ", intial_exposure_time)
-        print("[INFO] Initialized target brightness: ",auto_exposure.target_bright)
+        print("[INFO] Initialial brightness: ",auto_exposure.w_avg_bright)
         print("[INFO] Successfully intialize auto-exposure algorithm.")
 
     # loop collect data
     try:
-        next_exposure_time = intial_exposure_time 
+        next_exposure_time = intial_exposure_time * 10
         while True:
             # set exposure time 
             manual_exposure_time = next_exposure_time
-            color_sensor.set_option(rs.option.exposure, manual_exposure_time * 10)
+            color_sensor.set_option(rs.option.exposure, manual_exposure_time)
             
             # Wait for a frames metadata
             frames = pipeline.wait_for_frames()
@@ -127,7 +127,7 @@ if __name__ == "__main__":
             # color_sensor_timestamp = color_frame.get_frame_metadata(rs.frame_metadata_value.sensor_timestamp)
 
             # calculate exposure time for next frame
-            next_exposure_time = auto_exposure.adjust_exposure(color_image)
+            next_exposure_time = auto_exposure.adjust_exposure(color_image, manual_exposure_time)
             # print("[INFO] exposure time for next frame", next_exposure_time, "msec")
 
             # Show images
