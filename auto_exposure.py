@@ -53,19 +53,18 @@ class AE:
         self.w_avg_bright = self.calculate_weighted_average_brightness(color_image)
         
         if (abs(self.w_avg_bright - self.target_bright) <= 40):
-            return old_et
+            return np.clip(old_et, self.min_exp_t, self.max_exp_t)
         if (int(np.sum(self.hist[200:])) > total_pix_num * 0.125):
-            return old_et / np.cbrt(2)
-        if (int(np.sum(self.hist[30:])) < total_pix_num * 0.125):
-            return old_et * np.cbrt(2)
+            new_et = old_et / np.sqrt(2)
+            return np.clip(new_et, self.min_exp_t, self.max_exp_t)
+        if (int(np.sum(self.hist[50:])) > total_pix_num * 0.125):
+            new_et =  old_et * np.sqrt(2)
+            return np.clip(new_et, self.min_exp_t, self.max_exp_t)
         if old_et == self.max_exp_t:
             old_et = old_et - 1   
 
         new_et = (256. - self.w_avg_bright) * old_et * self.max_exp_t / ((self.target_bright - self.w_avg_bright) * old_et + (256. - self.target_bright) * self.max_exp_t)
         return np.clip(new_et, self.min_exp_t, self.max_exp_t)
-        
-        # constrains exposure time
-        return np.clip(exposure_time, self.min_exp_t, self.max_exp_t)  
 
     # def adjust_exposure(self, color_image):
     #     # calculate weighted average brightness
