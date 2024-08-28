@@ -51,6 +51,10 @@ if __name__ == "__main__":
         print("[ERROR] Can't find motion sensor!")
         exit(0)
     
+    # Initialize logger
+    exposure_time_saver = logger.ExposureTimeSaver()
+    timestamps_saver = logger.TimeStampSaver()
+
     # set sensor option
     color_sensor = pipeline_profile.get_device().query_sensors()[rgb_sensor_index]
     color_sensor.set_option(rs.option.enable_auto_exposure, False)
@@ -62,7 +66,8 @@ if __name__ == "__main__":
     framerate = 30
     image_resolution = [1280, 720]
     config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
-    
+    config.enable_record_to_file("hhhhh.bag")
+
     # get intrinsics of color sensor
     logger.save_sensor_intrinsics(pipeline_profile, rs.stream.color)
     
@@ -118,14 +123,14 @@ if __name__ == "__main__":
 
             # get actual exposure time
             actual_exp_time = color_frame.get_frame_metadata(rs.frame_metadata_value.actual_exposure)
+            exposure_time_saver.save_exposure_time(actual_exp_time / 10)
             # print("[INFO] Actual exposure time:", (actual_exp_time / 10), "msec")
 
             # get timestamp
             color_sensor_timestamp_domain = color_frame.get_frame_timestamp_domain()
             color_sensor_timestamp = color_frame.get_timestamp() / 1000
-            logger.save_timestamps(color_sensor_timestamp)
-            # color_sensor_timestamp = color_frame.get_frame_metadata(rs.frame_metadata_value.sensor_timestamp)
-
+            timestamps_saver.save_timestamps(color_sensor_timestamp)
+            
             # calculate exposure time for next frame
             next_exposure_time = auto_exposure.adjust_exposure(color_image, manual_exposure_time)
             # print("[INFO] exposure time for next frame", next_exposure_time, "msec")
