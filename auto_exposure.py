@@ -54,11 +54,11 @@ class AE:
         
         if (abs(self.w_avg_bright - self.target_bright) <= 40):
             return np.clip(old_et, self.min_exp_t, self.max_exp_t)
-        if (int(np.sum(self.hist[200:])) > total_pix_num * 0.125):
-            new_et = old_et / np.sqrt(2)
+        if (int(np.sum(self.hist[220:])) > total_pix_num / 20):
+            new_et = old_et / np.cbrt(2)
             return np.clip(new_et, self.min_exp_t, self.max_exp_t)
-        if (int(np.sum(self.hist[50:])) > total_pix_num * 0.125):
-            new_et =  old_et * np.sqrt(2)
+        if (int(np.sum(self.hist[30:])) > total_pix_num / 20):
+            new_et =  old_et * np.cbrt(2)
             return np.clip(new_et, self.min_exp_t, self.max_exp_t)
         if old_et == self.max_exp_t:
             old_et = old_et - 1   
