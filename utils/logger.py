@@ -88,6 +88,11 @@ def save_sensor_intrinsics(pipeline_profile: rs.pipeline_profile, stream_type: r
             file.write("cy: " + str(sensor_intrinsics.ppy) + "\n")
             file.close()
 
+def set_record_to_bag_file(config: rs.config):
+    dir = os.path.expanduser("./bag")
+    os.makedirs(dir, exist_ok=True)
+    config.enable_record_to_file(os.path.join(dir, "record_1.bag"))
+
             
             
 

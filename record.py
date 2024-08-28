@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 import pyrealsense2 as rs
@@ -54,6 +55,8 @@ if __name__ == "__main__":
     # Initialize logger
     exposure_time_saver = logger.ExposureTimeSaver()
     timestamps_saver = logger.TimeStampSaver()
+    logger.set_record_to_bag_file(config)
+    logger.save_sensor_intrinsics(pipeline_profile, rs.stream.color)
 
     # set sensor option
     color_sensor = pipeline_profile.get_device().query_sensors()[rgb_sensor_index]
@@ -66,10 +69,6 @@ if __name__ == "__main__":
     framerate = 30
     image_resolution = [1280, 720]
     config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
-    config.enable_record_to_file("hhhhh.bag")
-
-    # get intrinsics of color sensor
-    logger.save_sensor_intrinsics(pipeline_profile, rs.stream.color)
     
     # calculate exposure time range
     # indoor_flicker_freq = 50
@@ -94,7 +93,7 @@ if __name__ == "__main__":
             else:
                 print(Fore.RED + "[ERROR] Invalid input. Please enter 'y' or 'n'!")
     finally:
-        intial_exposure_time = (min_exposure_time + max_exposure_time) / 2
+        intial_exposure_time = 25
         color_sensor.set_option(rs.option.exposure, intial_exposure_time * 10)
         frames = pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
