@@ -9,15 +9,26 @@ class AE:
         self.min_exp_t = min_exposure_time * 10
         self.c_f = contrast_factor
         self.target_bright = target_brightness
+        self.counter_ = 1
         self.hist = self.calculate_histogram(image)
         self.gsw = self.generate_gaussian_weight(image.shape)
         self.w_avg_bright = self.calculate_average_brightness(image)
+
+    def crop_image(self, image, crop_width = 320, crop_height = 240):
+        img_height, img_width = image.shape[:2]
+        
+        start_x = (img_width - crop_width) // 2
+        start_y = (img_height - crop_height) // 2
+        
+        cropped_image = image[start_y:start_y + crop_height, start_x:start_x + crop_width]
+        
+        return cropped_image
 
     def calculate_average_brightness(self, color_image):
         gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         return np.mean(gray_image)
         
-    def generate_gaussian_weight(self, shape, sigma = 0.5):
+    def generate_gaussian_weight(self, shape, sigma = 1.0):
         rows, cols, _ = shape
         x = np.linspace(-1, 1, cols)
         y = np.linspace(-1, 1, rows)
@@ -50,16 +61,27 @@ class AE:
         # calculate image histogram
         self.hist = self.calculate_histogram(color_image)
         # calculate weighted average brightness
-        self.w_avg_bright = self.calculate_weighted_average_brightness(color_image)
-        
-        if (abs(self.w_avg_bright - self.target_bright) <= 40):
-            return np.clip(old_et, self.min_exp_t, self.max_exp_t)
-        if (int(np.sum(self.hist[220:])) > total_pix_num / 20):
-            new_et = old_et / np.cbrt(2)
-            return np.clip(new_et, self.min_exp_t, self.max_exp_t)
-        if (int(np.sum(self.hist[30:])) > total_pix_num / 20):
-            new_et =  old_et * np.cbrt(2)
-            return np.clip(new_et, self.min_exp_t, self.max_exp_t)
+        crop_image = self.crop_image(color_image)
+        self.w_avg_bright = self.calculate_average_brightness(crop_image)
+
+        if (abs(self.w_avg_bright - self.target_bright) <= 20):
+            # if (np.sum(self.hist[220:]) > total_pix_num / 20):
+            #     print(self.counter_)
+            #     if self.counter_ % 10 == 0:
+            #         new_et = old_et / np.cbrt(2)
+            #         self.counter_ = 1
+            #         return np.clip(new_et, self.min_exp_t, self.max_exp_t)
+            #     else:
+            #         self.counter_ = self.counter_ + 1
+            # elif (np.sum(self.hist[30:]) > total_pix_num / 20):
+            #     if self.counter_ % 10 == 0:
+            #         new_et =  old_et * np.cbrt(2)
+            #         self.counter_ = 1
+            #         return np.clip(new_et, self.min_exp_t, self.max_exp_t)
+            #     else:
+            #         self.counter_ = self.counter_ + 1
+            # else: 
+            new_et = old_et
         if old_et == self.max_exp_t:
             old_et = old_et - 1   
 
