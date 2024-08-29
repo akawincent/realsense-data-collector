@@ -66,7 +66,7 @@ if __name__ == "__main__":
     color_sensor.set_option(rs.option.global_time_enabled, 1)
     
     # setting for streams
-    framerate = 30
+    framerate = 15
     image_resolution = [1280, 720]
     config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
     
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # indoor_flicker_freq = 50
     exposure_range = color_sensor.get_option_range(rs.option.exposure)
     max_exposure_time = min(1 / framerate * 1e3, exposure_range.max * 0.1) - 2
-    min_exposure_time = exposure_range.min * 0.1
+    min_exposure_time = exposure_range.min 
     # min_exposure_time = max((1 / (indoor_flicker_freq * 2)) * 1e3, exposure_range.min * 0.1) - 5
     print(f"exposure time min: {round(min_exposure_time, 1)} msec")
     print(f"exposure time max: {round(max_exposure_time, 1)} msec")

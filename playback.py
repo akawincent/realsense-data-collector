@@ -33,7 +33,7 @@ try:
 
     # Configure the pipeline to stream the depth stream
     # Change this parameters according to the recorded bag file resolution
-    framerate = 30
+    framerate = 15
     config.enable_stream(rs.stream.color, rs.format.bgr8, framerate)
 
     # Start streaming from file
