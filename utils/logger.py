@@ -1,11 +1,15 @@
 import os
+import time
 import threading
 import pyrealsense2 as rs
 
+timestr = time.strftime("%Y%m%d-%H%M%S")
+WORK_DIR = os.path.expanduser("./bags/yakitori1_" + timestr)
+
 class ExposureTimeSaver:
     def __init__(self):
-        self.dir_path = os.path.expanduser("./exposure_time")
-        self.file_path = os.path.join(self.dir_path, "exposure_time.txt")
+        self.dir_path = WORK_DIR
+        self.file_path = os.path.join(self.dir_path, "exposure_times.txt")
         self.lock = threading.Lock()
         self.file = None
         if os.path.isfile(self.file_path):
@@ -25,7 +29,7 @@ class ExposureTimeSaver:
     def save_exposure_time(self, ts):
         # Ensure the directory exists
         os.makedirs(self.dir_path, exist_ok=True)
-        
+
         with self.lock:
             # Open file
             self._open_file()
@@ -36,8 +40,8 @@ class ExposureTimeSaver:
 
 class TimeStampSaver:
     def __init__(self):
-        self.dir_path = os.path.expanduser("./timestamps")
-        self.file_path = os.path.join(self.dir_path, "frame_timestamps.txt")
+        self.dir_path = WORK_DIR
+        self.file_path = os.path.join(self.dir_path, "timestamps.txt")
         self.lock = threading.Lock()
         self.file = None
         if os.path.isfile(self.file_path):
@@ -57,7 +61,7 @@ class TimeStampSaver:
     def save_timestamps(self, ts):
         # Ensure the directory exists
         os.makedirs(self.dir_path, exist_ok=True)
-        
+
         with self.lock:
             # Open file
             self._open_file()
@@ -70,8 +74,8 @@ def save_sensor_intrinsics(pipeline_profile: rs.pipeline_profile, stream_type: r
     stream_profile = pipeline_profile.get_stream(stream_type)
     video_stream_profile = stream_profile.as_video_stream_profile()
     sensor_intrinsics = video_stream_profile.get_intrinsics()
-    
-    dir = os.path.expanduser("./sensor_intrinsics_info")
+
+    dir = WORK_DIR
     os.makedirs(dir, exist_ok=True)
 
     if stream_type == rs.stream.color:
@@ -89,10 +93,6 @@ def save_sensor_intrinsics(pipeline_profile: rs.pipeline_profile, stream_type: r
             file.close()
 
 def set_record_to_bag_file(config: rs.config):
-    dir = os.path.expanduser("./bag")
+    dir = WORK_DIR
     os.makedirs(dir, exist_ok=True)
-    config.enable_record_to_file(os.path.join(dir, "record_1.bag"))
-
-            
-            
-
+    config.enable_record_to_file(os.path.join(dir, "data.bag"))
