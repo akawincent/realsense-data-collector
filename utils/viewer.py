@@ -2,7 +2,7 @@ import cv2
 
 def visualizer(color_image, actual_exp_time, w_avg_bright, timestamps):
     font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 0.8
+    font_scale = 1.5
     thickness = 2
     line_type = cv2.LINE_AA
 
