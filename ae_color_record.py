@@ -52,6 +52,11 @@ if __name__ == "__main__":
         print("[ERROR] Can't find motion sensor!")
         exit(0)
 
+    # setting for streams
+    framerate = 15
+    image_resolution = [1280, 720]
+    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
+
     # Initialize logger
     exposure_time_saver = logger.ExposureTimeSaver()
     timestamps_saver = logger.TimeStampSaver()
@@ -64,11 +69,6 @@ if __name__ == "__main__":
     color_sensor.set_option(rs.option.enable_auto_white_balance, False)
     color_sensor.set_option(rs.option.power_line_frequency, 1)
     color_sensor.set_option(rs.option.global_time_enabled, 1)
-
-    # setting for streams
-    framerate = 15
-    image_resolution = [1280, 720]
-    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
 
     # calculate exposure time range
     # indoor_flicker_freq = 50
