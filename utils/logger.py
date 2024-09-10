@@ -4,7 +4,7 @@ import threading
 import pyrealsense2 as rs
 
 timestr = time.strftime("%Y%m%d-%H%M%S")
-WORK_DIR = os.path.expanduser("./bags/yakitori1_" + timestr)
+WORK_DIR = os.path.expanduser("./bags/test_mbavo2_10ms_expo" + timestr)
 
 class ExposureTimeSaver:
     def __init__(self):
@@ -82,6 +82,19 @@ def save_sensor_intrinsics(pipeline_profile: rs.pipeline_profile, stream_type: r
         f = os.path.join(dir, "color_sensor_intrinsics.txt")
         with open(f, "w") as file:
             file.write("sensor_type: \"color_sensor\"\n")
+            file.write("distortion_model: " + "\"" + str(sensor_intrinsics.model) + "\"" + "\n")
+            file.write("distortion_coeffs: " + str(sensor_intrinsics.coeffs) + "\n")
+            file.write("width: " + str(sensor_intrinsics.width) + "\n")
+            file.write("height: " + str(sensor_intrinsics.height) + "\n")
+            file.write("fx: " + str(sensor_intrinsics.fx) + "\n")
+            file.write("fy: " + str(sensor_intrinsics.fy) + "\n")
+            file.write("cx: " + str(sensor_intrinsics.ppx) + "\n")
+            file.write("cy: " + str(sensor_intrinsics.ppy) + "\n")
+            file.close()
+    elif stream_type == rs.stream.depth:
+        f = os.path.join(dir, "depth_sensor_intrinsics.txt")
+        with open(f, "w") as file:
+            file.write("sensor_type: \"depth_sensor\"\n")
             file.write("distortion_model: " + "\"" + str(sensor_intrinsics.model) + "\"" + "\n")
             file.write("distortion_coeffs: " + str(sensor_intrinsics.coeffs) + "\n")
             file.write("width: " + str(sensor_intrinsics.width) + "\n")
