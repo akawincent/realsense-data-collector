@@ -11,7 +11,12 @@ from colorama import Fore, Style, init
 if __name__ == "__main__":
     pipeline = rs.pipeline()
     config = rs.config()
-
+    
+    # setting for streams
+    framerate = 15
+    image_resolution = [1280, 720]
+    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
+    
     # config
     pipeline_wrapper = rs.pipeline_wrapper(pipeline)
     pipeline_profile = config.resolve(pipeline_wrapper)
@@ -51,11 +56,6 @@ if __name__ == "__main__":
     if not found_imu:
         print("[ERROR] Can't find motion sensor!")
         exit(0)
-
-    # setting for streams
-    framerate = 15
-    image_resolution = [1280, 720]
-    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
 
     # Initialize logger
     exposure_time_saver = logger.ExposureTimeSaver()

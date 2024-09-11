@@ -12,6 +12,12 @@ if __name__ == "__main__":
     pipeline = rs.pipeline()
     config = rs.config()
 
+    # setting for streams
+    framerate = 30
+    image_resolution = [640, 480]
+    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
+    config.enable_stream(rs.stream.depth, image_resolution[0], image_resolution[1], rs.format.z16, framerate)
+    
     # config
     pipeline_wrapper = rs.pipeline_wrapper(pipeline)
     pipeline_profile = config.resolve(pipeline_wrapper)
@@ -52,12 +58,6 @@ if __name__ == "__main__":
         print("[ERROR] Can't find motion sensor!")
         exit(0)
 
-    # setting for streams
-    framerate = 30
-    image_resolution = [640, 480]
-    config.enable_stream(rs.stream.color, image_resolution[0], image_resolution[1], rs.format.bgr8, framerate)
-    config.enable_stream(rs.stream.depth, image_resolution[0], image_resolution[1], rs.format.z16, framerate)
-
     # Initialize logger
     timestamps_saver = logger.TimeStampSaver()
     logger.set_record_to_bag_file(config)
@@ -70,14 +70,14 @@ if __name__ == "__main__":
     color_sensor.set_option(rs.option.enable_auto_white_balance, False)
     color_sensor.set_option(rs.option.power_line_frequency, 1)
     color_sensor.set_option(rs.option.global_time_enabled, 1)
-    color_sensor.set_option(rs.option.exposure, 100)
+    color_sensor.set_option(rs.option.exposure, 300)
 
     depth_sensor = pipeline_profile.get_device().first_depth_sensor()
     depth_sensor.set_option(rs.option.enable_auto_exposure, False)
     # depth_sensor.set_option(rs.option.enable_auto_white_balance, False)
     # depth_sensor.set_option(rs.option.power_line_frequency, 1)
     depth_sensor.set_option(rs.option.global_time_enabled, 1)
-    depth_sensor.set_option(rs.option.exposure, 100)
+    depth_sensor.set_option(rs.option.exposure, 300)
 
     #depth scale
     depth_scale = depth_sensor.get_depth_scale()
